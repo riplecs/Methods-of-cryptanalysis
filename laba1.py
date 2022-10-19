@@ -49,5 +49,6 @@ print(pd.DataFrame(CM_probs, index = [f'C_{i}' for i in range(n)],
 
 
 M_given_C_probs = np.divide(CM_probs, [C_probs for i in range(n)])[0]
+
 print(pd.DataFrame(M_given_C_probs, index = [f'C_{i}' for i in range(n)],
                    columns = [f'M_{j}' for j in range(n)]))
