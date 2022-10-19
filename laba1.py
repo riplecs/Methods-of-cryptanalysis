@@ -55,5 +55,18 @@ print(pd.DataFrame(M_given_C_probs, index = [f'C_{i}' for i in range(n)],
 
 delta_D = [f'M_{list(M_given_C_probs[i]).index(max(M_given_C_probs[i]))}'
            for i in range(n)]
+
 print(pd.DataFrame(np.matrix(delta_D), index = [''],
                    columns = [f'C_{i}' for i in range(n)]))
+
+delta_S = np.zeros((n, n))
+
+for i in range(n):
+    for j in range(n):
+        if M_given_C_probs[i][j] == max(M_given_C_probs[i]):
+            delta_S[i][j] = 1
+    suma = sum(delta_S[i])
+    if suma > 1:
+        delta_S[i] = [0. if delta_S[i][j] == 0. else round(1/suma, 4)
+                      for j in range(n)]
+print(delta_S)
