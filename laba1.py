@@ -52,3 +52,8 @@ M_given_C_probs = np.divide(CM_probs, [C_probs for i in range(n)])[0]
 
 print(pd.DataFrame(M_given_C_probs, index = [f'C_{i}' for i in range(n)],
                    columns = [f'M_{j}' for j in range(n)]))
+
+delta_D = [f'M_{list(M_given_C_probs[i]).index(max(M_given_C_probs[i]))}'
+           for i in range(n)]
+print(pd.DataFrame(np.matrix(delta_D), index = [''],
+                   columns = [f'C_{i}' for i in range(n)]))
