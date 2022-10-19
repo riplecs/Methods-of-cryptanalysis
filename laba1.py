@@ -21,8 +21,9 @@ table[''] = [f'k_{i}' for i in range(n)]
 table = table.set_index('')
 print(table)
 
-C_probs = []
 C_values = np.unique(np.array(table))
+
+C_probs = []
 
 for c in C_values:
     c_prob = 0
@@ -33,4 +34,15 @@ for c in C_values:
     C_probs.append(c_prob)
     
 print(pd.DataFrame(np.matrix(C_probs).T, index = ['P(C_h)']))
-                      
+                   
+CM_probs = np.zeros((n, n))
+
+for c in C_values:
+    for i in range(n):
+        for j in range(n):
+            if table[f'M_{i}'].values[j] == c:
+                index = list(C_values).index(c)
+                CM_probs[index][i] += probs.loc[['P(M_j)']][i].values*probs.loc[['P(k_i)']][j].values
+                
+print(pd.DataFrame(CM_probs, index = [f'C_{i}' for i in range(n)],
+                   columns = [f'M_{j}' for j in range(n)]))
