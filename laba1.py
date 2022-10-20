@@ -76,3 +76,7 @@ losses_D = sum(CM_probs[i][j]*(0 if delta_D[i] == f'M_{j}' else 1)
 
 print(losses_D)
 
+losses_S = sum(CM_probs[i][j]*(1 - delta_S[i][j]) for i in range(n) 
+               for j in range(n))
+
+print(losses_S)
