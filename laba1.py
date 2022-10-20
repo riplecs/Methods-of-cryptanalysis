@@ -43,19 +43,21 @@ for c in C_values:
             if table[f'M_{i}'].values[j] == c:
                 index = list(C_values).index(c)
                 CM_probs[index][i] += probs.loc[['P(M_j)']][i].values*probs.loc[['P(k_i)']][j].values
-                
+ 
+print('\nP(C, M):\n') 
 print(pd.DataFrame(CM_probs, index = [f'C_{i}' for i in range(n)],
                    columns = [f'M_{j}' for j in range(n)]))
 
 
 M_given_C_probs = np.divide(CM_probs, [C_probs for i in range(n)])[0]
-
+print('\nP(M|C):\n')
 print(pd.DataFrame(M_given_C_probs, index = [f'C_{i}' for i in range(n)],
                    columns = [f'M_{j}' for j in range(n)]))
 
 delta_D = [f'M_{list(M_given_C_probs[i]).index(max(M_given_C_probs[i]))}'
            for i in range(n)]
 
+print('\nDeterministic δ:\n')
 print(pd.DataFrame(np.matrix(delta_D), index = [''],
                    columns = [f'C_{i}' for i in range(n)]))
 
@@ -69,14 +71,19 @@ for i in range(n):
     if suma > 1:
         delta_S[i] = [0. if delta_S[i][j] == 0. else round(1/suma, 4)
                       for j in range(n)]
-print(delta_S)
+        
+print('\nStochastic δ:\n')
+print(pd.DataFrame(delta_S, index = [f'C_{i}' for i in range(n)],
+                   columns = [f'M_{j}' for j in range(n)]))
 
 losses_D = sum(CM_probs[i][j]*(0 if delta_D[i] == f'M_{j}' else 1)
                for i in range(n) for j in range(n))
 
+print('\nAverage losses for deterministic δ:\n')
 print(losses_D)
 
 losses_S = sum(CM_probs[i][j]*(1 - delta_S[i][j]) for i in range(n) 
                for j in range(n))
 
+print('\nAverage losses for stochastic δ:\n')
 print(losses_S)
