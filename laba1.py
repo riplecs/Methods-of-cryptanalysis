@@ -70,3 +70,9 @@ for i in range(n):
         delta_S[i] = [0. if delta_S[i][j] == 0. else round(1/suma, 4)
                       for j in range(n)]
 print(delta_S)
+
+losses_D = sum(CM_probs[i][j]*(0 if delta_D[i] == f'M_{j}' else 1)
+               for i in range(n) for j in range(n))
+
+print(losses_D)
+
