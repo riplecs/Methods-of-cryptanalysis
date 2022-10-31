@@ -125,18 +125,29 @@ def criterion2_1(L, l, text, threshold2 = 0.8):
     Aaf = [elem for elem in np.unique(text) if elem in Afrq]
     return len(list(set(Afrq)&set(Aaf))) > len(Afrq)*threshold2
     
-def criterion2_2(L, l, text, threshold2 = 0.001):
+def criterion2_2(L, l, text):
     Zm = alph if l == 1 else bigrams
     freqs = letter_freqs if l == 1 else bigram_freqs
     threshold  = np.median(freqs)
     Afrq = [Zm[freqs.index(i)] for i in [j for j in freqs if j > threshold]]
     text = [text[i:i + l] for i in range(L - l + 1)]
-    Afrq_freqs = [text.count(i)/(L - l + 1) for i in Afrq]
-    return all([f_x >= threshold2 for f_x in Afrq_freqs])
+    Afrq_text_freqs = [text.count(i)/(L - l + 1) for i in Afrq]
+    Afrq_alph_freqs = [clean_text.count(i)/(L_text - l + 1) for i in Afrq]
+    return all([Afrq_text_freqs >= Afrq_alph_freqs])
     
+def criterion2_3(L, l, text):
+    Zm = alph if l == 1 else bigrams
+    freqs = letter_freqs if l == 1 else bigram_freqs
+    threshold  = np.median(freqs)
+    Afrq = [Zm[freqs.index(i)] for i in [j for j in freqs if j > threshold]]
+    text = [text[i:i + l] for i in range(L - l + 1)]
+    Ff = sum([text.count(i)/(L - l + 1) for i in Afrq])
+    Kf = sum([clean_text.count(i)/(L_text - l + 1) for i in Afrq])
+    return Ff >= Kf
+
 #for L in (10, 100, 1000, 10000):
 #    texts = gen_texts(clean_text, L, (10000 if L != 10000 else 1000))
 l = 2
-print(criterion2_2(10000, l, clean_text[:10000]))
-print(criterion2_2(10000, l, uniform_text(l, 10000)))
-print(criterion2_2(10000, l, fibonacci_text(l, 10000)))
+print(criterion2_3(10000, l, clean_text[:10000]))
+print(criterion2_3(10000, l, uniform_text(l, 10000)))
+print(criterion2_3(10000, l, fibonacci_text(l, 10000)))
