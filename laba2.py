@@ -65,25 +65,46 @@ def gen_affine_keys(l):
     b = random.randint(0, m**l - 1)
     return a, b
 
+def convert_bigrams(text):
+    return [(text[i]*m + text[i + 1])%m**2 
+            for i in range(0, len(text) - 1, 2)]
+
+
+def deconvert_bigrams(cipher_text):
+    new_cipher_text = []
+    for c in cipher_text:
+        new_cipher_text.append(c//m)
+        new_cipher_text.append(c%m)
+    return new_cipher_text
+    
+
 def Affine(text, l):
     a, b = gen_affine_keys(l)
     text = [alph.index(t) for t in text]
     if l == 2:
-        text = [(text[i]*m + text[i + 1])%m**l
-                for i in range(0, len(text) - 1, l)]
+        text = convert_bigrams(text)
     cipher_text = [(a*t+b)%m**l for t in text]
     if l == 2:
-        new_cipher_text = []
-        for c in cipher_text:
-            new_cipher_text.append(c//m)
-            new_cipher_text.append(c%m)
-        cipher_text = new_cipher_text
+        cipher_text = deconvert_bigrams(cipher_text)
     return ''.join(alph[c] for c in cipher_text)
 
 def uniform_text(l, length):
     Zm = alph if l == 1 else bigrams
     length = length if l == 1 else length//2
     return ''.join([random.choice(Zm) for i in range(length)])
+    
+
+def fibonacci_text(l, length):
+    Zm = range(m) if l == 1 else convert_bigrams([alph.index(t) 
+                                    for t in ''.join([b for b in bigrams])])
+    length = length if l == 1 else length//2
+    s0, s1 = random.choices(Zm, k = 2)
+    y = [s0, s1]
+    for i in range(length - 2):
+        y.append((y[i] + y[i + 1])%m**l)
+    if l == 2:
+        y = deconvert_bigrams(y)
+    return ''.join([alph[y_i] for y_i in y])
     
 #for L in (10, 100, 1000, 10000):
 #    texts = gen_texts(clean_text, L, (10000 if L != 10000 else 1000))
