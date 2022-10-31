@@ -8,7 +8,6 @@ import re
 import math
 import random
 import numpy as np
-import textwrap
 import pandas as pd
 
 
@@ -116,8 +115,20 @@ def criterion2_0(L, l, text):
     text = [text[i:i + l] for i in range(L - 1)]
     return all(elem in np.unique(text) for elem in Afrq)
         
+
+def criterion2_1(L, l, text, threshold2 = 0.8):
+    Zm = alph if l == 1 else bigrams
+    freqs = letter_freqs if l == 1 else bigram_freqs
+    threshold  = np.median(freqs)
+    Afrq = [Zm[freqs.index(i)] for i in [j for j in freqs if j > threshold]]
+    text = [text[i:i + l] for i in range(L - 1)]
+    Aaf = [elem for elem in np.unique(text) if elem in Afrq]
+    return len(list(set(Afrq)&set(Aaf))) > len(Afrq)*threshold2
+    
     
 #for L in (10, 100, 1000, 10000):
 #    texts = gen_texts(clean_text, L, (10000 if L != 10000 else 1000))
-    
 
+print(criterion2_1(10000, 2, clean_text[13:13+10000]))
+print(criterion2_1(10000, 2, uniform_text(2, 10000)))
+print(criterion2_1(10000, 2, fibonacci_text(2, 10000)))
