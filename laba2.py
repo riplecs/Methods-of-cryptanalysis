@@ -79,9 +79,13 @@ def Affine(text, l):
             new_cipher_text.append(c%m)
         cipher_text = new_cipher_text
     return ''.join(alph[c] for c in cipher_text)
+
+def uniform_text(l, length):
+    Zm = alph if l == 1 else bigrams
+    length = length if l == 1 else length//2
+    return ''.join([random.choice(Zm) for i in range(length)])
     
 #for L in (10, 100, 1000, 10000):
 #    texts = gen_texts(clean_text, L, (10000 if L != 10000 else 1000))
     
-
 
