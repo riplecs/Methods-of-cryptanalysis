@@ -8,6 +8,7 @@ import re
 import math
 import random
 import numpy as np
+import textwrap
 import pandas as pd
 
 
@@ -33,7 +34,7 @@ bigram_freqs = [clean_text.count(i)/(L_text - 1) for i in bigrams]
 
 print(pd.DataFrame(np.array(bigram_freqs).reshape((m, m)), 
                    columns = alph, index = alph))
-
+'''
 entropy_per_letter = sum(-f*math.log2(f) for f in letter_freqs)
 print(entropy_per_letter)
 entropy_per_bigram = sum((-f*math.log2(f) if f > 0 else 0) 
@@ -42,7 +43,7 @@ print(entropy_per_bigram)
 compl_index =  sum(clean_text.count(bi)*(clean_text.count(bi) - 1)
                    for bi in bigrams)/(L_text*(L_text - 1))
 print(compl_index)
-
+'''
 
 def gen_texts(text, l, n):
     texts = []
@@ -90,14 +91,14 @@ def Affine(text, l):
 
 def uniform_text(l, length):
     Zm = alph if l == 1 else bigrams
-    length = length if l == 1 else length//2
+    length = length//l
     return ''.join([random.choice(Zm) for i in range(length)])
     
 
 def fibonacci_text(l, length):
     Zm = range(m) if l == 1 else convert_bigrams([alph.index(t) 
                                     for t in ''.join([b for b in bigrams])])
-    length = length if l == 1 else length//2
+    length = length//l
     s0, s1 = random.choices(Zm, k = 2)
     y = [s0, s1]
     for i in range(length - 2):
@@ -105,6 +106,16 @@ def fibonacci_text(l, length):
     if l == 2:
         y = deconvert_bigrams(y)
     return ''.join([alph[y_i] for y_i in y])
+    
+
+def criterion2_0(L, l, text):
+    Zm = alph if l == 1 else bigrams
+    freqs = letter_freqs if l == 1 else bigram_freqs
+    threshold  = np.median(freqs)
+    Afrq = [Zm[freqs.index(i)] for i in [j for j in freqs if j > threshold]]
+    text = [text[i:i + l] for i in range(L - 1)]
+    return all(elem in np.unique(text) for elem in Afrq)
+        
     
 #for L in (10, 100, 1000, 10000):
 #    texts = gen_texts(clean_text, L, (10000 if L != 10000 else 1000))
