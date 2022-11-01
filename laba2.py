@@ -72,7 +72,6 @@ def gen_Vigenere_key():
     return random.choices(range(m), k = r)
 
 def  Vigenere():
-    key = gen_Vigenere_key()
     text_ = [alph.index(t) for t in text]
     cipher_text = [(t + key[text_.index(t)%len(key)])%m for t in text_]
     return ''.join([alph[c] for c in cipher_text])
@@ -99,7 +98,6 @@ def deconvert_bigrams(cipher_text):
     
 
 def Affine():
-    a, b = gen_affine_keys()
     text_ = [alph.index(t) for t in text]
     if l == 2:
         text_ = convert_bigrams(text_)
@@ -128,24 +126,31 @@ def fibonacci_text():
     
 
 def criterion2_0(text):
+    if l == 2:
+        text = [text[i:i + 2] for i in range(L - 1)]
     return all(elem in np.unique(text) for elem in Afrq)
         
 
-def criterion2_1(text, threshold2 = 0.8):
+def criterion2_1(text, threshold = 0.8):
+    if l == 2:
+        text = [text[i:i + 2] for i in range(L - 1)]
     Aaf = [elem for elem in np.unique(text) if elem in Afrq]
-    return len(list(set(Afrq)&set(Aaf))) > len(Afrq)*threshold2
+    return len(list(set(Afrq)&set(Aaf))) > len(Afrq)*threshold
     
 def criterion2_2(text):
-    return all([Afrq_text_freqs >= Afrq_alph_freqs])
+    Afrq_text_freqs = [count_enters(text, i)/(L - l + 1) for i in Afrq]
+    return all([Afrq_text_freqs >= Afrq_alph_freq])
     
 def criterion2_3(text):
-    return sum(Afrq_text_freqs) >= sum(Afrq_alph_freqs)
+    Afrq_text_freqs = [count_enters(text, i)/(L - l + 1) for i in Afrq]
+    return sum(Afrq_text_freqs) >= sum(Afrq_alph_freq)
 
-def criterion4(text):
-    text_nums = [text.count(i) for i in Zm]
+def criterion4(text, threshold = 0.01):
+    Zm = alph if l == 1 else bigrams
+    text_nums = [count_enters(text, i) for i in Zm]
     index = sum(i*(i - 1) for i in text_nums)/(L*(L - 1))
     true_index = letter_index if l == 1 else bi_index
-    return abs(index - true_index) <= 0.001
+    return abs(index - true_index) <= threshold
 
 
 
@@ -159,39 +164,48 @@ distortions = {Vigenere : 'Vigenere',
                Affine : 'Affine substitution',
                uniform_text : 'Uniformly distributed sequence',
                fibonacci_text : 'Fibonacci sequence'}
-import time
-start_time = time.time()
 
-letter_freqs_median = np.median(letter_freqs)
-bigram_freqs_median = np.median(bigram_freqs)
 
-results = open('results.txt', 'a')
-for criterion in criterions:
-    results.write(criterions[criterion])
-    for distort in distortions:
-        results.write(distortions[distort])
-        for L in (10, 100, 1000, 10000):
+letter_freqs_threshold = np.median(letter_freqs)
+bigram_freqs_threshold = np.median(bigram_freqs)
+
+Afrqs = ([alph[letter_freqs.index(i)] for i in letter_freqs 
+          if i > letter_freqs_threshold], 
+        [bigrams[bigram_freqs.index(i)] for i in bigram_freqs 
+          if i > bigram_freqs_threshold])
+
+Afrq_alph_freqs = ([letter_freqs[alph.index(el)] for el in Afrqs[0]], 
+                   [bigram_freqs[bigrams.index(el)] for el in Afrqs[1]])
+
+
+
+results = open('results.txt', 'w')
+
+for distort in distortions:
+    results.write(distortions[distort])
+    if distortions[distort] == 'Vigenere':
+        key = gen_Vigenere_key()
+        results.write(f'(r = {"".join([alph[k] for k in key])})\n')
+    if distortions[distort] == 'Affine substitution':
+        a, b = gen_affine_keys()
+        results.write(f'(a = {a}, b = {b})')
+    for criterion in criterions:
+        results.write(criterions[criterion])
+        for L in (10, 100):
             N = (10000 if L != 10000 else 1000)
             texts = gen_texts()
             for l in (1, 2):
-                Zm = alph if l == 1 else bigrams
-                freqs = letter_freqs if l == 1 else bigram_freqs
-                threshold  = letter_freqs_median if l == 1 else bigram_freqs_median
-                Afrq = [Zm[freqs.index(i)] for i in freqs if i > threshold]
-                Afrq_alph_freqs = [freqs[Zm.index(el)] for el in Afrq]
-                a, b = 0, 0
+                Afrq = Afrqs[l - 1]
+                Afrq_alph_freq = Afrq_alph_freqs[l - 1]
+                alpha, beta = 0, 0
                 for text in texts:
-                    Afrq_text_freqs = [count_enters(text, i)/(L - l + 1) 
-                                       for i in Afrq]
-                    a += (1 - int(criterion([text[i:i + l] 
-                                                for i in range(L - l + 1)])))
+                    alpha += (1 - int(criterion(text)))
                     cipher_text = distort()
-                    b += int(criterion([cipher_text[i:i + l] 
-                                           for i in range(L - l + 1)]))
+                    beta += int(criterion(cipher_text))
                 results.write(f'\nL = {L}, l = {l}\n')
-                results.write(f'False positive = {a/(2*N)}\n')
-                results.write(f'False negative =  {b/(2*N)}\n')
+                results.write(f'False positive = {alpha/(2*N)}\n')
+                results.write(f'False negative =  {beta/(2*N)}\n')
+            
          
 results.close()        
         
-print("--- %s seconds ---" % (time.time() - start_time))
