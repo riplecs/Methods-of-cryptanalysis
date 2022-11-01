@@ -9,7 +9,7 @@ import math
 import random
 import numpy as np
 import pandas as pd
-
+import matplotlib.pyplot as plt
 
 file = open('znedoleni.txt', 'r')
 
@@ -56,7 +56,7 @@ letter_index =  sum(clean_text.count(i)*(clean_text.count(i) - 1)
                    for i in alph)/(L_text*(L_text - 1))
 print(letter_index)
 bi_index =  sum(count_enters(clean_text, i)*(count_enters(clean_text, i) - 1)
-                   for i in bigrams)/(L_text*(L_text - 1))
+                for i in bigrams)/(L_text*(L_text - 1))
 print(bi_index)
 
 
@@ -115,7 +115,7 @@ def uniform_text():
 
 def fibonacci_text():
     Zm = range(m) if l == 1 else convert_bigrams([alph.index(t) 
-                                    for t in ''.join([b for b in bigrams])])
+                                 for t in ''.join([b for b in bigrams])])
     length = L//l
     s0, s1 = random.choices(Zm, k = 2)
     y = [s0, s1]
@@ -138,25 +138,45 @@ def criterion2_1(text, threshold = 0.9):
     Aaf = [elem for elem in np.unique(text) if elem in Afrq]
     return len(list(set(Afrq)&set(Aaf))) > len(Afrq)*threshold
     
+
 def criterion2_2(text):
     Afrq_text_freqs = [count_enters(text, i)/(L - l + 1) for i in Afrq]
     return all([Afrq_text_freqs >= Afrq_alph_freq])
     
+
 def criterion2_3(text):
     Afrq_text_freqs = [count_enters(text, i)/(L - l + 1) for i in Afrq]
     return sum(Afrq_text_freqs) >= sum(Afrq_alph_freq)
 
+
 def criterion4(text):
-    threshold = 0.01 if l == 1 else 0.001
+    threshold = 0.006 if l == 1 else 0.002
     Zm = alph if l == 1 else bigrams
     text_nums = [count_enters(text, i) for i in Zm]
     index = sum(i*(i - 1) for i in text_nums)/(L*(L - 1))
     true_index = letter_index if l == 1 else bi_index
     return abs(index - true_index) <= threshold
 
+'''
+N = 100
+L = 1000
+texts = gen_texts()
+
+plt.plot(range(N), [sum(count_enters(j, i)*(count_enters(j, i) - 1)
+         for i in alph)/(L*(L - 1)) - letter_index for j in texts],
+         label = 'for l = 1')
+
+plt.plot(range(N), [sum(count_enters(j, i)*(count_enters(j, i) - 1)
+         for i in bigrams)/(L*(L - 1)) - bi_index for j in texts],
+         label = 'for l = 2')
+
+plt.legend()
+'''
+
 def criterion5(text, threshold = 0.9):
     text_nums = [count_enters(text, i) for i in Bprh]
     return text_nums.count(0) > m**l*threshold
+
 
 criterions = {criterion2_0 : '__Criterion 2.0__\n',
               criterion2_1 : '__Criterion 2.1__\n',
@@ -194,7 +214,7 @@ Afrq_alph_freqs = ([letter_freqs[alph.index(el)] for el in Afrqs[0]],
 
 results = open('results.txt', 'w')
 
-for L in (10, 100):
+for L in (10, 100, 1000, 10000):
     N = (10000 if L != 10000 else 1000)
     texts = gen_texts()
     for distort in distortions:
@@ -221,7 +241,6 @@ for L in (10, 100):
                 results.write(f'False positive = {alpha/(2*N)}\n')
                 results.write(f'False negative =  {beta/(2*N)}\n')
             
-         
 results.close()        
         
 
