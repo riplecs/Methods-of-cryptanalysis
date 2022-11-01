@@ -106,6 +106,7 @@ def Affine():
         cipher_text = deconvert_bigrams(cipher_text)
     return ''.join(alph[c] for c in cipher_text)
 
+
 def uniform_text():
     Zm = alph if l == 1 else bigrams
     length = L//l
@@ -131,7 +132,7 @@ def criterion2_0(text):
     return all(elem in np.unique(text) for elem in Afrq)
         
 
-def criterion2_1(text, threshold = 0.8):
+def criterion2_1(text, threshold = 0.9):
     if l == 2:
         text = [text[i:i + 2] for i in range(L - 1)]
     Aaf = [elem for elem in np.unique(text) if elem in Afrq]
@@ -145,20 +146,24 @@ def criterion2_3(text):
     Afrq_text_freqs = [count_enters(text, i)/(L - l + 1) for i in Afrq]
     return sum(Afrq_text_freqs) >= sum(Afrq_alph_freq)
 
-def criterion4(text, threshold = 0.01):
+def criterion4(text):
+    threshold = 0.01 if l == 1 else 0.001
     Zm = alph if l == 1 else bigrams
     text_nums = [count_enters(text, i) for i in Zm]
     index = sum(i*(i - 1) for i in text_nums)/(L*(L - 1))
     true_index = letter_index if l == 1 else bi_index
     return abs(index - true_index) <= threshold
 
-
+def criterion5(text, threshold = 0.9):
+    text_nums = [count_enters(text, i) for i in Bprh]
+    return text_nums.count(0) > m**l*threshold
 
 criterions = {criterion2_0 : '__Criterion 2.0__\n',
               criterion2_1 : '__Criterion 2.1__\n',
               criterion2_2 : '__Criterion 2.2__\n',
               criterion2_3 : '__Criterion 2.3__\n',
-              criterion4 : '__Criterion 4.0__\n'}
+              criterion4 : '__Criterion 4.0__\n',
+              criterion5 : '__Criterion 5.0__\n'}
 
 distortions = {Vigenere : 'Vigenere',
                Affine : 'Affine substitution',
@@ -166,13 +171,21 @@ distortions = {Vigenere : 'Vigenere',
                fibonacci_text : 'Fibonacci sequence'}
 
 
-letter_freqs_threshold = np.median(letter_freqs)
-bigram_freqs_threshold = np.median(bigram_freqs)
+letter_freqs_threshold = sorted(letter_freqs, reverse = True)[math.ceil(m*0.1)]
+bigram_freqs_threshold = sorted(bigram_freqs, reverse = True)[math.ceil(m*m*0.1)]
+
+letter_freqs_threshold2 = sorted(letter_freqs)[math.ceil(m*0.1)]
+bigram_freqs_threshold2 = sorted(bigram_freqs)[math.ceil(m*m*0.1)]
 
 Afrqs = ([alph[letter_freqs.index(i)] for i in letter_freqs 
           if i > letter_freqs_threshold], 
         [bigrams[bigram_freqs.index(i)] for i in bigram_freqs 
           if i > bigram_freqs_threshold])
+
+Bprhs = ([alph[letter_freqs.index(i)] for i in letter_freqs 
+          if i < letter_freqs_threshold2], 
+        [bigrams[bigram_freqs.index(i)] for i in bigram_freqs 
+          if i < bigram_freqs_threshold2])
 
 Afrq_alph_freqs = ([letter_freqs[alph.index(el)] for el in Afrqs[0]], 
                    [bigram_freqs[bigrams.index(el)] for el in Afrqs[1]])
@@ -181,21 +194,23 @@ Afrq_alph_freqs = ([letter_freqs[alph.index(el)] for el in Afrqs[0]],
 
 results = open('results.txt', 'w')
 
-for distort in distortions:
-    results.write(distortions[distort])
-    if distortions[distort] == 'Vigenere':
-        key = gen_Vigenere_key()
-        results.write(f'(r = {"".join([alph[k] for k in key])})\n')
-    if distortions[distort] == 'Affine substitution':
-        a, b = gen_affine_keys()
-        results.write(f'(a = {a}, b = {b})')
-    for criterion in criterions:
-        results.write(criterions[criterion])
-        for L in (10, 100):
-            N = (10000 if L != 10000 else 1000)
-            texts = gen_texts()
+for L in (10, 100):
+    N = (10000 if L != 10000 else 1000)
+    texts = gen_texts()
+    for distort in distortions:
+        results.write(distortions[distort])
+        if distortions[distort] == 'Vigenere':
+            key = gen_Vigenere_key()
+            results.write(f'(r = {"".join([alph[k] for k in key])})\n')
+        if distortions[distort] == 'Affine substitution':
+            a, b = gen_affine_keys()
+            results.write(f'(a = {a}, b = {b})\n')
+        for criterion in criterions:
+            print(criterions[criterion])
+            results.write(criterions[criterion])
             for l in (1, 2):
                 Afrq = Afrqs[l - 1]
+                Bprh = Bprhs[l - 1]
                 Afrq_alph_freq = Afrq_alph_freqs[l - 1]
                 alpha, beta = 0, 0
                 for text in texts:
@@ -209,3 +224,4 @@ for distort in distortions:
          
 results.close()        
         
+
