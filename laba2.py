@@ -98,6 +98,7 @@ def deconvert_bigrams(cipher_text):
     
 
 def Affine():
+    a, b = a_i[l - 1], b_i[l - 1]
     text_ = [alph.index(t) for t in text]
     if l == 2:
         text_ = convert_bigrams(text_)
@@ -178,17 +179,17 @@ def criterion5(text, threshold = 0.9):
     return text_nums.count(0) > m**l*threshold
 
 
-criterions = {criterion2_0 : '__Criterion 2.0__\n',
-              criterion2_1 : '__Criterion 2.1__\n',
-              criterion2_2 : '__Criterion 2.2__\n',
-              criterion2_3 : '__Criterion 2.3__\n',
-              criterion4 : '__Criterion 4.0__\n',
-              criterion5 : '__Criterion 5.0__\n'}
+criterions = {criterion2_0 : '\n__Criterion 2.0__\n',
+              criterion2_1 : '\n__Criterion 2.1__\n',
+              criterion2_2 : '\n__Criterion 2.2__\n',
+              criterion2_3 : '\n__Criterion 2.3__\n',
+              criterion4 : '\n__Criterion 4.0__\n',
+              criterion5 : '\n__Criterion 5.0__\n'}
 
-distortions = {Vigenere : 'Vigenere',
-               Affine : 'Affine substitution',
-               uniform_text : 'Uniformly distributed sequence',
-               fibonacci_text : 'Fibonacci sequence'}
+distortions = {Vigenere : '\n__Vigenere__\n',
+               Affine : '\n__Affine substitution__\n',
+               uniform_text : '\n__Uniformly distributed sequence__\n',
+               fibonacci_text : '\n__Fibonacci sequence__\n'}
 
 
 letter_freqs_threshold = sorted(letter_freqs, reverse = True)[math.ceil(m*0.1)]
@@ -211,22 +212,27 @@ Afrq_alph_freqs = ([letter_freqs[alph.index(el)] for el in Afrqs[0]],
                    [bigram_freqs[bigrams.index(el)] for el in Afrqs[1]])
 
 
+import time
+results = open('result.txt', 'w')
 
-results = open('results.txt', 'w')
 
+key = gen_Vigenere_key()
+results.write(f'Vigenere key: r = {"".join([alph[k] for k in key])}\n')
+l = 1
+a1, b1 = gen_affine_keys()
+results.write(f'Affine substitution key: a = {a1}, b = {b1}\n')
+l = 2
+a2, b2 = gen_affine_keys()
+results.write(f'Affine bigram substitution key: a = {a2}, b = {b2}\n')
+a_i, b_i = [a1, a2], [b1, b2]
+
+start_time = time.time()
 for L in (10, 100, 1000, 10000):
     N = (10000 if L != 10000 else 1000)
     texts = gen_texts()
     for distort in distortions:
         results.write(distortions[distort])
-        if distortions[distort] == 'Vigenere':
-            key = gen_Vigenere_key()
-            results.write(f'(r = {"".join([alph[k] for k in key])})\n')
-        if distortions[distort] == 'Affine substitution':
-            a, b = gen_affine_keys()
-            results.write(f'(a = {a}, b = {b})\n')
         for criterion in criterions:
-            print(criterions[criterion])
             results.write(criterions[criterion])
             for l in (1, 2):
                 Afrq = Afrqs[l - 1]
@@ -240,7 +246,9 @@ for L in (10, 100, 1000, 10000):
                 results.write(f'\nL = {L}, l = {l}\n')
                 results.write(f'False positive = {alpha/(2*N)}\n')
                 results.write(f'False negative =  {beta/(2*N)}\n')
-            
+                
+print("--- %s seconds ---" % (time.time() - start_time))               
+
 results.close()        
-        
+     
 
