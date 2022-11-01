@@ -158,7 +158,7 @@ def criterion4(text):
     true_index = letter_index if l == 1 else bi_index
     return abs(index - true_index) <= threshold
 
-'''
+
 N = 100
 L = 1000
 texts = gen_texts()
@@ -172,7 +172,7 @@ plt.plot(range(N), [sum(count_enters(j, i)*(count_enters(j, i) - 1)
          label = 'for l = 2')
 
 plt.legend()
-'''
+
 
 def criterion5(text, threshold = 0.9):
     text_nums = [count_enters(text, i) for i in Bprh]
