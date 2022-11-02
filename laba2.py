@@ -129,15 +129,14 @@ def fibonacci_text():
 
 def criterion2_0(text):
     if l == 2:
-        text = [text[i:i + 2] for i in range(L - 1)]
-    return all(elem in np.unique(text) for elem in Afrq)
+        text =  np.unique([text[i:i + 2] for i in range(L - 1)])
+    return all(elem in text for elem in Afrq)
         
 
-def criterion2_1(text, threshold = 0.9):
+def criterion2_1(text, threshold = 0.85):
     if l == 2:
-        text = [text[i:i + 2] for i in range(L - 1)]
-    Aaf = [elem for elem in np.unique(text) if elem in Afrq]
-    return len(list(set(Afrq)&set(Aaf))) > len(Afrq)*threshold
+        text = np.unique([text[i:i + 2] for i in range(L - 1)])
+    return len(list(set(Afrq)&set(text))) > len(Afrq)*threshold
     
 
 def criterion2_2(text):
@@ -174,9 +173,9 @@ plt.plot(range(N), [sum(count_enters(j, i)*(count_enters(j, i) - 1)
 plt.legend()
 
 
-def criterion5(text, threshold = 0.9):
+def criterion5(text, threshold = 0.85):
     text_nums = [count_enters(text, i) for i in Bprh]
-    return text_nums.count(0) > m**l*threshold
+    return text_nums.count(0) > len(Bprh)*threshold
 
 
 criterions = {criterion2_0 : '\n__Criterion 2.0__\n',
@@ -193,20 +192,15 @@ distortions = {Vigenere : '\n__Vigenere__\n',
 
 
 letter_freqs_threshold = sorted(letter_freqs, reverse = True)[math.ceil(m*0.1)]
-bigram_freqs_threshold = sorted(bigram_freqs, reverse = True)[math.ceil(m*m*0.1)]
-
 letter_freqs_threshold2 = sorted(letter_freqs)[math.ceil(m*0.1)]
-bigram_freqs_threshold2 = sorted(bigram_freqs)[math.ceil(m*m*0.1)]
+
+bigram_freqs_s, bigrams_s = zip(*sorted(zip(bigram_freqs, bigrams)))
 
 Afrqs = ([alph[letter_freqs.index(i)] for i in letter_freqs 
-          if i > letter_freqs_threshold], 
-        [bigrams[bigram_freqs.index(i)] for i in bigram_freqs 
-          if i > bigram_freqs_threshold])
+          if i > letter_freqs_threshold], bigrams_s[-math.ceil(m*m*0.1):])
 
 Bprhs = ([alph[letter_freqs.index(i)] for i in letter_freqs 
-          if i < letter_freqs_threshold2], 
-        [bigrams[bigram_freqs.index(i)] for i in bigram_freqs 
-          if i < bigram_freqs_threshold2])
+          if i < letter_freqs_threshold2], bigrams_s[:math.ceil(m*m*0.1)])
 
 Afrq_alph_freqs = ([letter_freqs[alph.index(el)] for el in Afrqs[0]], 
                    [bigram_freqs[bigrams.index(el)] for el in Afrqs[1]])
@@ -225,6 +219,7 @@ l = 2
 a2, b2 = gen_affine_keys()
 results.write(f'Affine bigram substitution key: a = {a2}, b = {b2}\n')
 a_i, b_i = [a1, a2], [b1, b2]
+
 
 start_time = time.time()
 for L in (10, 100, 1000, 10000):
