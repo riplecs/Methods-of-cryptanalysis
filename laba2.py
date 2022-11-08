@@ -42,16 +42,14 @@ def count_enters(text, bigram):
             break
     return count
 
-bigram_freqs = [count_enters(clean_text, i)/(L_text - 1) 
-                for i in bigrams]
+bigram_freqs = [count_enters(clean_text, i)/(L_text - 1) for i in bigrams]
 
-print(pd.DataFrame(np.array(bigram_freqs).reshape((m, m)), 
-                   columns = alph, index = alph))
+print(pd.DataFrame(np.array(bigram_freqs).reshape((m, m)),  columns = alph, 
+                   index = alph))
 
 entropy_per_letter = sum(-f*math.log2(f) for f in letter_freqs)
 print(entropy_per_letter)
-entropy_per_bigram = sum((-f*math.log2(f) if f > 0 else 0) 
-                         for f in bigram_freqs)/2
+entropy_per_bigram = sum((-f*math.log2(f) if f > 0 else 0) for f in bigram_freqs)/2
 print(entropy_per_bigram)
 
 def culc_index(Zm, text):
@@ -238,3 +236,38 @@ for L in L_i:
                 
 
 results.close()        
+
+#################################
+
+def BWT(text):
+    rotations = [text[i:] + text[:i] for i in range(len(text))]
+    indexes = [alph.index(r[0]) for r in rotations]
+    indexes, rotations = zip(*sorted(zip(indexes, rotations)))
+    return [r[-1] for r in rotations]
+
+def BWTcriterion(text):
+    text = BWT(text)
+    compressed_text = [text[0]]
+    nums = 0
+    j = 0
+    for i in range(len(text) - 1):
+        if text[i + 1] != compressed_text[-1]:
+            if j > 1:
+                compressed_text.append(str(j))
+                nums += 1
+            compressed_text.append(text[i + 1])
+            j = 0
+        j += 1
+    if j > 1:
+        compressed_text.append(str(j))
+        nums += 1
+    return nums
+
+L, l = 1000, 1
+text = clean_text[:L]
+
+print(BWTcriterion(text))
+print(BWTcriterion(Affine()))
+print(BWTcriterion(Vigenere()))
+print(BWTcriterion(uniform_text()))
+print(BWTcriterion(fibonacci_text()))
