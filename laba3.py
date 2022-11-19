@@ -7,15 +7,16 @@ Created on Sat Nov 19 11:56:19 2022
 import gmpy2
 import numpy as np
 
-file = open('15.txt', 'r')
+file = open('SE_15.txt', 'r')
 data = []
 for line in file:
     data.append(line[5:])
-    
+file.close()
+
 C = [int(data[i], 16) for i in range(0, len(data), 2)]
 N = [int(data[i], 16) for i in range(1, len(data), 2)]
-
 t = len(C)
+e = 5
 
 def Chinese_remainder_theorem(values, modulus):
     n = np.prod(modulus)
@@ -26,10 +27,9 @@ def Chinese_remainder_theorem(values, modulus):
 
 def SE_attack():
     x = Chinese_remainder_theorem(C, N)
-    for e in range(2, t + 1):
-        M = gmpy2.iroot(x, e)
-        if M[1]:
-            return hex(M[0]).upper()
+    M = gmpy2.iroot(x, e)
+    assert M[1]
+    return hex(M[0]).upper()
 
         
 print(SE_attack())
