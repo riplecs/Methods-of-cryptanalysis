@@ -19,6 +19,7 @@ m = len(alphabet)
 text = ''
 for line in file:
     text += line
+file.close()
 text = text.replace('ґ', 'г')
 clean_text = re.sub(f'[^{alphabet}]', '', text.lower())
 
